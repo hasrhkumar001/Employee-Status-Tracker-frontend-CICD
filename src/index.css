@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.fixed-fields {
+  position: sticky;
+  z-index: 10; /* Higher than body cells, but adjusted if needed */
+  background-color: rgb(243 244 246); /* Ensure background doesn't inherit */
+  color:rgb(55 65 81); /* Text color */
+  box-shadow: inset 0 0 0 0.5px rgb(229 231 235); /* Helps restore border effect */
+}
+
+.fixed-data{
+    position: sticky;
+  z-index: 10; /* Higher than body cells, but adjusted if needed */
+  background-color: rgb(249 250 251); /* Ensure background doesn't inherit */
+  color:rgb(55 65 81); /* Text color */
+  box-shadow: inset 0 0 0 0.5px rgb(229 231 235); /* Helps restore border effect */
+}
