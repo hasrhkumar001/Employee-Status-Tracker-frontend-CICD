@@ -1,0 +1,57 @@
+name: deploy frontend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend-image:latest \
+            --build-arg NODE_ENV=production \
+            --build-arg MONGO_PASSWORD="${{ secrets.MONGO_PASSWORD }}" \
+            --build-arg JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            --build-arg CLIENT_URL=http://localhost:5000/api \
+            --build-arg VITE_API_URL=http://localhost:5000/api \
+            --build-arg PORT=80 .
+
+      - name: Publish image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/frontend-image:latest
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Pull Docker image
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/frontend-image:latest
+
+      - name: Stop and remove existing container
+        run: |
+          docker stop frontend-container || true
+          docker rm frontend-container || true
+
+      - name: Run new container
+        run: |
+          docker run -d --name frontend-container -p 5173:80 \
+            -e MONGO_PASSWORD="${{ secrets.MONGO_PASSWORD }}" \
+            -e NODE_ENV=production \
+            -e CLIENT_URL=http://localhost:5000/api \
+            -e VITE_API_URL=http://localhost:5000/api \
+            -e PORT=80 \
+            -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            ${{ secrets.DOCKER_USERNAME }}/frontend-image:latest
+

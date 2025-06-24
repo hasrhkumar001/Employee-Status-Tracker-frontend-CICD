@@ -4,11 +4,15 @@ FROM node:22 as build
 
 WORKDIR /app
 
-COPY frontend/package*.json ./
+COPY package*.json ./
 
 RUN npm install 
+ARG VITE_API_URL
+ARG CLIENT_URL
+ENV VITE_API_URL=$VITE_API_URL
+ENV CLIENT_URL=$CLIENT_URL
 
-COPY frontend ./
+COPY . .
 
 CMD ["npm", "run", "build"]
 
@@ -17,7 +21,7 @@ FROM nginx:alpine as prod
 
 COPY --from=build /app/dist /var/www/html
 
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
